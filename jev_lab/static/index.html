@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jev — Browser Lab</title><meta name="description" content="See how a browser observation becomes a typed Jev decision, then an action.">
+  <link rel="stylesheet" href="/styles.css"><script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="Jev Browser Lab home"><span class="brand-mark">j.</span><span>jev <span class="brand-light">/ browser lab</span></span></a><span class="local-label"><span class="status-dot"></span>Local learning playground</span></header>
+  <main class="workspace">
+    <section class="intro"><div><p class="eyebrow">A SMALL DECISION. A VISIBLE NEXT STEP.</p><h1>Watch a browser<br><em>make its next move.</em></h1><p class="lede">Give it a goal. See what Jev receives, what it decides,<br class="desktop-break"> and how your code turns that answer into a click.</p></div><div class="intro-flow" aria-label="The application observes, Jev decides, and your code acts"><span><b>01</b> Observe</span><span class="flow-line"></span><span><b>02</b> Decide</span><span class="flow-line"></span><span><b>03</b> Act</span></div></section>
+    <section class="task-bar" aria-label="Goal and model settings">
+      <div class="task-main"><label for="goal">WHAT SHOULD THE BROWSER FIND?</label><input id="goal" maxlength="1200" value="Find the installation commands for the Atlas SDK."><div id="presets" class="presets" aria-label="Example goals"></div></div>
+      <div class="mode-field"><label for="mode">DECISION SOURCE</label><select id="mode"><option value="demo">Demo · scripted answers</option><option value="live" disabled>Live Jev · add API key</option></select><p id="mode-note">No API calls. Preset goals follow a scripted path.</p></div>
+    </section>
+    <div class="lab-grid">
+      <section class="browser-panel" aria-label="Practice browser">
+        <div class="panel-heading"><div><span class="eyebrow">THE BROWSER</span><h2>Atlas documentation</h2></div><button id="reset" class="button secondary">↺ Reset browser</button></div>
+        <div class="browser-shell"><div class="browser-toolbar"><span class="window-dots" aria-hidden="true">● ● ●</span><span id="address" class="address">atlas.local / home</span><span class="practice-label">PRACTICE SITE</span></div><iframe id="browser" src="/demo/site.html?page=home" title="Local Atlas documentation practice site"></iframe></div>
+        <div class="browser-caption"><span class="status-dot"></span><span id="snapshot-summary">Reading the page…</span><span>Text + links → state</span></div>
+      </section>
+      <aside class="decision-panel" aria-label="Decision and action">
+        <div class="panel-heading"><div><span class="eyebrow">THE DECISION</span><h2>One step at a time</h2></div><span id="source-badge" class="badge">DEMO</span></div>
+        <div class="threshold-control"><label for="threshold">Required choice confidence <output id="threshold-value">0.70</output></label><input id="threshold" type="range" min="0" max="1" step="0.01" value="0.70"><p>Higher means fewer clicks pass your rule. It is not an accuracy percentage.</p></div>
+        <button id="evaluate" class="button primary" disabled>Evaluate next step <span aria-hidden="true">↗</span></button>
+        <div id="decision-empty" class="empty-state"><span class="empty-symbol" aria-hidden="true">?</span><h3>A decision starts with a question.</h3><p>Evaluate the page to see a suggested link, its probability, and whether the goal is met.</p></div>
+        <div id="decision-result" hidden>
+          <div class="chosen-heading"><span class="eyebrow">CHOICE · NEXT ACTION</span><h3 id="chosen-label"></h3></div>
+          <div id="probabilities" class="probabilities" aria-label="Action probabilities"></div>
+          <div class="metrics"><div><span>Confidence</span><strong id="confidence"></strong></div><div><span>Relevance · score</span><strong id="relevance"></strong></div><div><span>Goal met · noul</span><strong id="goal-met"></strong></div></div>
+          <div id="policy" class="policy"><strong id="policy-title"></strong><p id="policy-reason"></p></div>
+          <button id="apply" class="button primary" disabled>Apply suggested click <span aria-hidden="true">→</span></button>
+          <p id="decision-meta" class="decision-meta"></p>
+        </div>
+        <p id="error" class="error" role="alert" hidden></p><p id="announcement" class="sr-only" aria-live="polite"></p>
+      </aside>
+    </div>
+    <section class="inspector" aria-label="Inspect the API and learn the terms">
+      <div class="inspector-header"><div class="tabs" role="tablist" aria-label="Inspect"><button id="tab-request" role="tab" aria-selected="true" aria-controls="pane-request">Request payload</button><button id="tab-response" role="tab" aria-selected="false" aria-controls="pane-response">Response</button><button id="tab-terms" role="tab" aria-selected="false" aria-controls="pane-terms">The terminology</button><button id="tab-trace" role="tab" aria-selected="false" aria-controls="pane-trace">Run history</button></div><button id="copy" class="button text-button">Copy JSON</button></div>
+      <div id="pane-request" role="tabpanel" aria-labelledby="tab-request"><div class="code-caption"><span><b>model</b> + <b>state</b> + <b>questions</b></span><span>POST /v1/systemone</span></div><pre><code id="request-json">Waiting for the browser snapshot…</code></pre></div>
+      <div id="pane-response" role="tabpanel" aria-labelledby="tab-response" hidden><div class="code-caption"><span id="response-caption">Evaluate a step to see its answer.</span><span>answers → code policy</span></div><pre><code id="response-json">No response yet.</code></pre></div>
+      <div id="pane-terms" class="terms" role="tabpanel" aria-labelledby="tab-terms" hidden>
+        <dl><div><dt>State</dt><dd>The goal and what the browser currently sees: page text and observed links.</dd></div><div><dt>Instructions</dt><dd>The precise question, such as “Which available link best advances this goal?”</dd></div><div><dt>Criteria</dt><dd>The allowed choices and their meanings, or the ordered descriptions for a score.</dd></div><div><dt>Probability</dt><dd>How likely the model considers each outcome. The choice probabilities sum to one.</dd></div><div><dt>Confidence</dt><dd>A measure derived from the answer’s probability distribution. It is not the probability that an answer is correct.</dd></div><div><dt>RLCD</dt><dd>Reinforcement Learning for Calibrated Decisions: the training approach behind Jev. It is not a request field.</dd></div></dl>
+      </div>
+      <div id="pane-trace" role="tabpanel" aria-labelledby="tab-trace" hidden><ol id="history" class="history"><li class="history-empty">Your decisions and clicks will appear here.</li></ol></div>
+    </section>
+    <footer><span>Jev supplies judgment. Your code controls the action.</span><a href="https://docs.typesafe.ai/introduction" target="_blank" rel="noreferrer">TypeSafe documentation ↗</a></footer>
+  </main>
+</body>
+</html>

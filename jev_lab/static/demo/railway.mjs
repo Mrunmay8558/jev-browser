@@ -1,0 +1,20 @@
+const root=document.getElementById('content');
+const trip={from:'',to:'',date:'',travelClass:'sleeper',passenger:''};
+function show(stage,html){document.title=`Railway practice — ${stage}`;history.replaceState(null,'',`#${stage.toLowerCase()}`);root.innerHTML=html}
+function details(){return `<dl><dt>Route</dt><dd id="route"></dd><dt>Date</dt><dd id="date"></dd><dt>Train</dt><dd>Morning Intercity · 07:15 → 10:40</dd><dt>Class</dt><dd>Chair car</dd><dt>Passenger</dt><dd id="passenger"></dd><dt>Demo fare</dt><dd>₹450 · no charge</dd></dl>`}
+function populate(){document.getElementById('route').textContent=`${trip.from} → ${trip.to}`;document.getElementById('date').textContent=trip.date;document.getElementById('passenger').textContent=trip.passenger||'To be provided'}
+function search(){
+  show('Search',`<p class="eyebrow">01 / Find your train</p><h1>A journey starts here.</h1><p class="subtitle">Search the fictional railway timetable.</p><form><div class="fields"><label>From station<input id="from" name="from" required></label><label>To station<input id="to" name="to" required></label><label>Travel date<input id="date-input" name="date" type="date" required></label><label>Travel class<select id="class"><option value="sleeper">Sleeper</option><option value="chair">Chair car</option><option value="first">First class</option></select></label></div><button type="button" id="search">Search trains</button></form>`);
+  document.getElementById('search').onclick=()=>{if(!document.querySelector('form').reportValidity())return;trip.from=document.getElementById('from').value;trip.to=document.getElementById('to').value;trip.date=document.getElementById('date-input').value;trip.travelClass=document.getElementById('class').value;results()};
+}
+function results(){
+  show('Results',`<p class="eyebrow">02 / Choose a departure</p><h1>Two ways to get there.</h1><p id="journey" class="subtitle"></p><section class="panel train"><div><h2>Morning Intercity</h2><p>07:15 → 10:40 · Direct · Available</p><span class="price">₹450</span></div><button id="morning">View morning train</button></section><section class="panel train"><div><h2>Evening Express</h2><p>17:00 → 20:30 · Direct · Available</p><span class="price">₹520</span></div><button id="evening">View evening train</button></section>`);
+  document.getElementById('journey').textContent=`${trip.from} → ${trip.to} · ${trip.date}`;
+  document.getElementById('morning').onclick=train;
+  document.getElementById('evening').onclick=()=>{root.querySelector('h1').textContent='The demo uses the morning train. Select that option.'};
+}
+function train(){show('Train',`<p class="eyebrow">03 / Train details</p><h1>Morning Intercity.</h1><section class="panel">${details()}<button id="choose">Choose this train</button></section>`);populate();document.getElementById('choose').onclick=traveller}
+function traveller(){show('Passenger',`<p class="eyebrow">04 / Passenger details</p><h1>Who is travelling?</h1><form><label>Passenger name<input id="name" name="name" required></label><p class="note">Use a fictional name for this demo. No identity documents or payment details are needed.</p><button id="review" type="button">Review journey</button></form>`);document.getElementById('review').onclick=()=>{if(!document.querySelector('form').reportValidity())return;trip.passenger=document.getElementById('name').value;review()}}
+function review(){show('Review',`<p class="eyebrow">05 / Review</p><h1>Check your journey.</h1><section class="panel">${details()}<p class="note">The next action creates a simulated confirmation only.</p><button id="confirm">Confirm demo booking</button></section>`);populate();document.getElementById('confirm').onclick=confirmation}
+function confirmation(){show('Confirmation',`<p class="eyebrow">06 / Complete</p><section class="success"><h1>Demo booking confirmed</h1><p class="reference">DEMO-1042</p>${details()}<p>This is a local simulation. No real ticket was booked and no payment was made.</p></section>`);populate()}
+search();

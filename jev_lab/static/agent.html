@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jev — Browser Agent</title>
+  <link rel="stylesheet" href="/agent.css"><script type="module" src="/agent.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">jev<span>browser agent</span></a>
+    <span class="connection" id="connection">Loading configuration…</span>
+    <a class="lab-link" href="/lab">Payload lab ↗</a>
+  </header>
+  <main class="workspace">
+    <section class="chat-pane" aria-label="Agent conversation">
+      <div class="pane-heading"><span>Conversation</span><button id="new-chat" class="ghost">New task ＋</button></div>
+      <div id="thread" class="thread" role="log" aria-label="Task conversation" aria-live="polite">
+        <div id="welcome" class="welcome">
+          <div class="mark">j.</div><p class="eyebrow">YOUR GOAL. ONE STEP AT A TIME.</p>
+          <h1>What should we do<br>in the browser?</h1>
+          <p>Give the agent a task, watch its actions, and guide it along the way.</p>
+          <button id="preset" class="example"><span class="example-icon">↗</span><span>Search flights on MakeMyTrip<small>Open the real website → enter details → compare</small></span><span>＋</span></button>
+          <p class="welcome-note">Name a supported website or include its URL. The agent opens the actual site and asks for missing details.</p>
+        </div>
+        <div id="messages"></div>
+      </div>
+      <section id="handoff" class="handoff" hidden aria-label="Agent needs input">
+        <strong id="handoff-title"></strong><p id="handoff-message"></p>
+        <div class="controls"><button id="approve" class="primary" hidden>Approve this action</button><button id="resume">Resume</button></div>
+        <small>Send changes in the chat below. Sending a message does not approve an action.</small>
+      </section>
+      <div id="error" class="error" role="alert" hidden></div>
+      <form id="composer" class="composer">
+        <div class="compose-box">
+          <label for="task" class="sr-only">Your message</label>
+          <textarea id="task" rows="3" maxlength="4000" placeholder="Ask the browser to do something…"></textarea>
+          <div class="composer-tools">
+            <button id="settings-toggle" class="ghost" type="button" aria-expanded="false" aria-controls="settings">Task settings</button>
+            <span id="composer-hint">Enter to send</span><button id="send" class="primary send" type="submit" aria-label="Send message">↑</button>
+          </div>
+        </div>
+        <div class="mode-picker" role="group" aria-label="Decision mode">
+          <button type="button" data-mode="jev" aria-pressed="true">Jev only</button>
+          <button type="button" data-mode="live" aria-pressed="false">Gemini + Jev</button>
+          
+        </div>
+        <p id="mode-note" class="mode-note">Python creates possible actions. Jev chooses what to do on the real website.</p>
+      </form>
+    </section>
+    <section class="browser-pane" aria-label="Browser view">
+      <div class="pane-heading"><span><span class="live-dot"></span> Browser view</span><span id="status" class="status">Ready</span></div>
+      <div class="browser-bar"><span class="dots" aria-hidden="true">● ● ●</span><span id="url">Your browser will appear here</span><form id="address-form" hidden><button type="button" id="browser-back" title="Go back">←</button><button type="button" id="browser-forward" title="Go forward">→</button><button type="button" id="browser-reload" title="Reload page">↻</button><input id="browser-address" aria-label="Website address" placeholder="Enter a website address" spellcheck="false"><button type="submit">Go</button></form><button id="focus" class="ghost" disabled>Open Chrome ↗</button></div>
+      <div class="browser-stage"><div class="screen" id="browser-slot">
+        <div id="screen-empty"><div class="browser-symbol" aria-hidden="true">↗</div><h2 id="empty-title">A front-row seat to every step.</h2><p id="empty-text">Send a task to open Chrome.<br>Page snapshots and the agent cursor appear here.</p></div>
+        <img id="screen" alt="Latest page snapshot from the controlled Chrome window" hidden>
+      </div></div>
+      <div class="run-bar"><div class="run-progress"><strong id="step">Ready when you are</strong><p id="message">Choose a mode and send a task in the chat.</p></div><div class="controls"><button id="pause" disabled>Pause / take over</button><button id="stop" class="stop" disabled>Stop</button></div></div>
+      <div class="browser-foot"><span id="metrics">No model calls yet</span><span id="browser-caption">Page snapshots · interact in Chrome</span></div>
+      <details class="inspector"><summary>How this decision was made <span>View payload & response</span></summary><pre id="inspector">No decision yet.</pre></details>
+    </section>
+  </main>
+  <dialog id="settings" aria-labelledby="settings-title">
+    <div class="dialog-title"><h2 id="settings-title">Task settings</h2><button id="close-settings" class="ghost" aria-label="Close settings">✕</button></div>
+    <p class="hint">These settings apply when you start a task. Change the mode between runs to compare the same goal.</p>
+    <label for="start-url">Starting website</label><input id="start-url" type="url" placeholder="https://the-website-you-want.com">
+    <p class="hint">A website named in your message takes precedence over this address. Supported names include MakeMyTrip, IRCTC, Wikipedia, and Python documentation.</p>
+    <label for="form-values">Known form values <span>especially useful for Jev only</span></label>
+    <textarea id="form-values" rows="5" placeholder="From: your departure city&#10;To: Dubai&#10;Departure date: YYYY-MM-DD"></textarea>
+    <p class="hint">One Field label: value per line. Jev-only chooses from these values; it cannot invent new text to type. You can also send labeled values in chat.</p>
+    <div class="two-col"><div><label for="max-steps">Step limit</label><input id="max-steps" type="number" value="35" min="1" max="80"></div><div><label for="threshold">Jev confidence threshold</label><input id="threshold" type="number" value="0.65" min="0" max="1" step="0.05"></div></div>
+    <p id="key-note" class="hint"></p><button id="save-settings" class="primary">Done</button>
+  </dialog>
+</body>
+</html>
