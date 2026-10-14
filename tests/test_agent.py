@@ -132,6 +132,33 @@ def test_low_action_confidence_reports_the_action_score_not_completion_score():
     asyncio.run(run())
 
 
+def test_popup_appearing_during_judgment_replans_without_resume():
+    async def run():
+        class Browser(FakeBrowser):
+            popup = False
+            async def observe(self):
+                page = observation()
+                if self.popup:
+                    page.revision = 'language-popup'
+                    page.elements[0].label = 'English'
+                return page
+        class Judge:
+            calls = 0
+            async def evaluate(self, *args):
+                self.calls += 1
+                browser.popup = True
+                return Verdict(choice='a1', confidence=.28 if self.calls == 1 else .98, goal_met=0)
+        browser, judge = Browser(), Judge()
+        agent = AgentRun(StartRun(task='Find trains', mode='jev', start_url='https://rail.example', max_steps=2),
+                         Settings(_env_file=None), None, browser=browser, judge=judge)
+        await asyncio.wait_for(agent.run(), timeout=2)
+        assert judge.calls == 2
+        assert browser.actions == 1
+        assert not any(event['kind'] == 'review' for event in agent.events)
+        assert any(event['kind'] == 'retry' for event in agent.events)
+    asyncio.run(run())
+
+
 def test_approval_cannot_become_action_until_explicitly_approved():
     async def run():
         class Planner:
@@ -189,6 +216,9 @@ def test_jev_only_generates_dynamic_candidates_from_supplied_values():
     fills=[action for action in plan.actions if action.kind=='fill']
     assert [action.value for action in fills]==['Mumbai']
     assert fills[0].target=='e2'
+    assert len(plan.actions) == 1  # Fill the grounded form field before submitting.
+    page.elements[0].value = 'Mumbai'
+    plan=asyncio.run(planner.propose('Find trains',page,[],['From: Mumbai']))
     assert any(action.target=='e1' and action.kind=='click' for action in plan.actions)
 
 
@@ -198,6 +228,70 @@ def test_candidate_overflow_hands_over_instead_of_emitting_invalid_ids():
     page.elements=[Element(ref='e1',tag='select',role='',label='Station',options=[{'label':str(i),'value':str(i)} for i in range(100)])]
     plan=asyncio.run(CandidatePlanner({}).propose('Choose a station',page,[],[]))
     assert plan.status=='handoff'
+
+
+def test_form_prompt_names_match_only_the_corresponding_supplied_value():
+    from jev_lab.agent.candidates import matching_values
+    values = {'From': 'NGP', 'To': 'Delhi', 'Journey date': '15/10/2026'}
+    assert matching_values('Enter From station. Input is Mandatory.', values) == [('From', 'NGP')]
+    assert matching_values('Enter To station. Input is Mandatory.', values) == [('To', 'Delhi')]
+    assert matching_values('Select the departure date', values) == [('Journey date', '15/10/2026')]
+    assert matching_values('DD/MM/YYYY *', values) == [('Journey date', '15/10/2026')]
+    # Unknown field names still go to Jev for interpretation.
+    assert matching_values('Unfamiliar control', values) == list(values.items())
+
+
+def test_autocomplete_commits_only_matching_supplied_suggestions():
+    from jev_lab.agent.candidates import CandidatePlanner
+    page = observation()
+    page.elements += [Element(ref='from', tag='input', role='searchbox', label='From', value='NGP'),
+                      Element(ref='ngp', tag='li', role='option', label='NAGPUR - NGP (NAGPUR)'),
+                      Element(ref='vngp', tag='li', role='option', label='VANGAICHUNGPAO - VNGP')]
+    planner = CandidatePlanner({'From': 'NGP'})
+    plan = asyncio.run(planner.propose('List trains', page, [], []))
+    assert [(a.kind, a.target) for a in plan.actions] == [('click', 'ngp')]
+    assert 'confirm From: NGP' in plan.actions[0].reason
+    history = [{'kind': 'action', 'message': 'click: ' + plan.actions[0].reason}]
+    page.elements[1].value = 'NAGPUR - NGP (NAGPUR)'
+    page.elements = page.elements[:2]
+    plan = asyncio.run(planner.propose('List trains', page, history, []))
+    assert not any(a.kind == 'fill' for a in plan.actions)
+    # A later user edit to a different station must not be treated as confirmed.
+    page.elements[1].value = 'VANGAICHUNGPAO - VNGP'
+    plan = asyncio.run(planner.propose('List trains', page, history, []))
+    assert any(a.kind == 'fill' for a in plan.actions)
+    page.elements[1].value = ''
+    plan = asyncio.run(planner.propose('List trains', page, [], []))
+    assert any(a.kind == 'fill' for a in plan.actions)
+    assert len(plan.actions) == 1
+
+
+def test_autocomplete_prefers_station_over_saved_multi_field_journey():
+    from jev_lab.agent.candidates import CandidatePlanner
+    page = observation()
+    page.elements = [Element(ref='from', tag='input', role='searchbox', label='From', value='NGP'),
+                     Element(ref='journey', tag='li', role='option', label='NAGPUR - NGP → HAZRAT NIZAMUDDIN - NZM'),
+                     Element(ref='station', tag='li', role='option', label='NAGPUR - NGP (NAGPUR) MAHARASHTRA')]
+    planner = CandidatePlanner({'From': 'NGP', 'To': 'NZM'})
+    plan = asyncio.run(planner.propose('Find trains', page, [], []))
+    assert [action.target for action in plan.actions] == ['station']
+    # Do not discard the only available match on a site offering saved journeys.
+    page.elements.pop()
+    plan = asyncio.run(planner.propose('Find trains', page, [], []))
+    assert [action.target for action in plan.actions] == ['journey']
+
+
+@pytest.mark.parametrize('value', ['2026-10-15', '15/10/2026'])
+def test_calendar_uses_the_full_requested_date(value):
+    from jev_lab.agent.candidates import CandidatePlanner
+    page = observation()
+    page.elements += [Element(ref='oct',tag='a',role='',label='15 October 2026'),
+                      Element(ref='nov',tag='a',role='',label='15 November 2026')]
+    plan = asyncio.run(CandidatePlanner({'Journey date':value}).propose('Find trains',page,[],[]))
+    assert [a.target for a in plan.actions] == ['oct']
+    # An ambiguous date must not silently assume a locale.
+    plan = asyncio.run(CandidatePlanner({'Journey date':'01/02/2026'}).propose('Find trains',page,[],[]))
+    assert len(plan.actions) > 1
 
 
 def test_jev_only_runs_to_completion_without_a_gemini_key_or_request():

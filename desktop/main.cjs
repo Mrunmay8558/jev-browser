@@ -58,7 +58,9 @@ async function cdpEndpoint() {
 async function boot() {
   window = new BaseWindow({width:1450,height:960,minWidth:1080,minHeight:700,title:'Jev Browser',backgroundColor:'#f7f7f2',show:false});
   ui = new WebContentsView({webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webviewTag:false}});
-  website = new WebContentsView({webPreferences:{partition:'persist:jev-web',contextIsolation:true,sandbox:true,nodeIntegration:false,webviewTag:false}});
+  // Playwright's actionability checks need animation frames even when the
+  // person switches back to chat or covers this window with another app.
+  website = new WebContentsView({webPreferences:{partition:'persist:jev-web',contextIsolation:true,sandbox:true,nodeIntegration:false,webviewTag:false,backgroundThrottling:false}});
   window.contentView.addChildView(ui);
   window.contentView.addChildView(website);
   website.setVisible(false);

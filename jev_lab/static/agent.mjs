@@ -53,6 +53,42 @@ function emptyBrowser(takeover = false) {
     ? (desktop ? 'Continue directly in the browser on the right, then resume.' : 'Switch to the Chrome window to continue. Page capture is paused until you resume.')
     : (desktop ? 'Enter a website address above, or send a task in chat. This pane is a real browser.' : 'Send a task to open Chrome. Page snapshots and the agent cursor appear here.');
 }
+function appendTrainResults(node, result) {
+  const heading = document.createElement('p');
+  heading.className = 'train-search-heading';
+  heading.textContent = result.sourceHeading;
+  node.append(heading);
+  const list = document.createElement('ol');
+  list.className = 'train-results';
+  list.setAttribute('aria-label', 'Train schedules from IRCTC');
+  for (const train of result.trains) {
+    const card = document.createElement('li');
+    card.className = 'train-card';
+    const name = document.createElement('strong');
+    name.className = 'train-name';
+    name.textContent = `${train.name} · ${train.number}`;
+    card.append(name);
+    const schedule = document.createElement('div');
+    schedule.className = 'train-schedule';
+    for (const [label, stop] of [['Departs', train.departure], ['Arrives', train.arrival]]) {
+      const column = document.createElement('div');
+      for (const [className, value] of [['train-stop-label', label], ['train-time', stop.time], ['train-date', stop.date], ['train-station', stop.station]]) {
+        const line = document.createElement('span');
+        line.className = className;
+        line.textContent = value;
+        column.append(line);
+      }
+      schedule.append(column);
+    }
+    card.append(schedule);
+    list.append(card);
+  }
+  node.append(list);
+  const note = document.createElement('p');
+  note.className = 'train-result-note';
+  note.textContent = result.note;
+  node.append(note);
+}
 function renderMessages(nearBottom) {
   const thread = $('thread');
   if (lastEvents === run.events.length) return;
@@ -69,7 +105,10 @@ function renderMessages(nearBottom) {
     node.textContent = event.kind === 'action' ? `✓ ${event.message}` : event.message;
     if (event.kind === 'complete' && run.result) {
       node.className += ' result';
-      for (const quote of run.result.evidence) {
+      node.textContent = run.result.summary;
+      const hasTrains = Array.isArray(run.result.trains);
+      if (hasTrains) appendTrainResults(node, run.result);
+      for (const quote of hasTrains ? [] : run.result.evidence) {
         const evidence = document.createElement('div');
         evidence.className = 'evidence'; evidence.textContent = quote; node.append(evidence);
       }
@@ -85,7 +124,13 @@ function renderMessages(nearBottom) {
     nodes.push(node);
   }
   $('messages').replaceChildren(...nodes);
-  if (nearBottom || wasEmpty) thread.scrollTop = thread.scrollHeight;
+  if (nearBottom || wasEmpty) {
+    const result = nodes.findLast(node => node.classList.contains('result'));
+    if (result && run.result?.trains?.length) {
+      // Start at the answer's heading, not at the last of many train cards.
+      thread.scrollTop += result.getBoundingClientRect().top - thread.getBoundingClientRect().top - 12;
+    } else thread.scrollTop = thread.scrollHeight;
+  }
 }
 function render(data) {
   if (!data || detached) return;
@@ -127,13 +172,13 @@ function render(data) {
   $('handoff').hidden = !run.pending;
   if (run.pending) {
     const trip = run.pending.flightDetails;
-    $('handoff-title').textContent = trip ? 'Your flight details' : run.status === 'approval' ? 'Review this action' : run.status === 'paused' ? 'You have control' : 'Let’s continue';
+    $('handoff-title').textContent = trip ? 'Your flight details' : run.status === 'approval' ? 'Review this action' : run.status === 'paused' ? 'You have control' : 'Agent paused';
     $('handoff-message').textContent = run.pending.message;
     $('trip-form').hidden = !trip;
     $('approve').hidden = run.status !== 'approval';
     $('resume').hidden = !!trip;
-    $('resume').textContent = run.status === 'approval' ? 'Skip & replan' : 'Continue after my changes';
-    $('handoff-help').textContent = trip ? 'No special format needed. Save these details to continue, or choose New task to start over.' : run.status === 'approval' ? 'Only Approve authorizes this action. New task stops this run.' : 'You can use the browser yourself, send guidance in chat, or start a New task.';
+    $('resume').textContent = run.status === 'approval' ? 'Skip & replan' : 'Resume agent';
+    $('handoff-help').textContent = trip ? 'No special format needed. Save these details to continue, or choose New task to start over.' : run.status === 'approval' ? 'Only Approve authorizes this action. New task stops this run.' : 'After changing the page yourself, choose Resume agent to read it again and continue. Sending guidance in chat also resumes the agent. New task starts over.';
     const draftKey = trip ? run.id + ':' + JSON.stringify(trip) : '';
     if (trip && tripDraftKey !== draftKey) {
       tripDraftKey = draftKey;

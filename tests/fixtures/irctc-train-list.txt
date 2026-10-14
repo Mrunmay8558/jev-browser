@@ -1,0 +1,410 @@
+All Classes
+GENERAL
+Flexible With Date
+Person With Disability Concession
+Railway Pass Concession
+Modify Search
+Refine Results
+Remove Filter
+JOURNEY CLASS
+Select All
+AC First Class (1A)
+AC 2 Tier (2A)
+Second Sitting (2S)
+AC 3 Tier (3A)
+AC 3 Economy (3E)
+Sleeper (SL)
+TRAIN TYPE
+Select All
+OTHER
+RAJDHANI
+DEPARTURE TIME
+Select All
+00:00 - 06:00
+Early Morning
+06:00 - 12:00
+Morning
+12:00 - 18:00
+Mid Day
+18:00 - 24:00
+Night
+00:00 Hrs
+24:00 Hrs
+ARRIVAL TIME
+Select All
+00:00 - 06:00
+Early Morning
+06:00 - 12:00
+Morning
+12:00 - 18:00
+Mid Day
+18:00 - 24:00
+Night
+00:00 Hrs
+24:00 Hrs
+FROM STATIONS
+Select All
+NAGPUR
+TO STATIONS
+Select All
+NEW DELHI
+HAZRAT NIZAMUDDIN JN
+17 Results for NAGPUR  HAZRAT NIZAMUDDIN JN | Thu, 15 Oct 2026 For Quota | General
+Sort By | Departure
+ Previous DayNext Day 
+TVC NZM SF EXP (12643)
+Runs On: MTWTFSS
+Train Schedule
+00:25 | NAGPUR | Thu, 15 Oct
+18:20
+18:45 | HAZRAT NIZAMUDDIN JN | Thu, 15 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Economy (3E)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+SAMTA EXPRESS (12807)
+Runs On: MTWTFSS
+Train Schedule
+00:40 | NAGPUR | Thu, 15 Oct
+17:30
+18:10 | HAZRAT NIZAMUDDIN JN | Thu, 15 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+ANDAMAN EXPRESS (16031)
+Runs On: MTWTFSS
+Train Schedule
+01:45 | NAGPUR | Thu, 15 Oct
+18:20
+20:05 | HAZRAT NIZAMUDDIN JN | Thu, 15 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+SAMPARK KRANTI (12707)
+Runs On: MTWTFSS
+Train Schedule
+02:00 | NAGPUR | Thu, 15 Oct
+16:35
+18:35 | HAZRAT NIZAMUDDIN JN | Thu, 15 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+PDY NDLS SF EXP (22403)
+Runs On: MTWTFSS
+Train Schedule
+06:50 | NAGPUR | Thu, 15 Oct
+17:30
+00:20 | NEW DELHI | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+DAKSHIN SF EXP (12721)
+Runs On: MTWTFSS
+Train Schedule
+09:25 | NAGPUR | Thu, 15 Oct
+18:20
+03:45 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+GRAND TRUNK EXP (12615)
+Runs On: MTWTFSS
+Train Schedule
+11:30 | NAGPUR | Thu, 15 Oct
+17:10
+04:40 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+GONDWANA SF EXP (12409)
+Runs On: MTWTFSS
+Train Schedule
+12:55 | NAGPUR | Thu, 15 Oct
+16:05
+05:00 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Economy (3E)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+TAMILNADU SF EXP (12621)
+Runs On: MTWTFSS
+Train Schedule
+13:50 | NAGPUR | Thu, 15 Oct
+16:10
+06:00 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+AP EXPRESS (20805)
+Runs On: MTWTFSS
+Train Schedule
+14:15 | NAGPUR | Thu, 15 Oct
+15:25
+05:40 | NEW DELHI | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+RAJDHANI EXP (22691)
+Runs On: MTWTFSS
+Train Schedule
+15:00 | NAGPUR | Thu, 15 Oct
+14:30
+05:30 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+TELANGANA SF EXP (12723)
+Runs On: MTWTFSS
+Train Schedule
+15:25 | NAGPUR | Thu, 15 Oct
+16:08
+07:33 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+SAMPARK KRANTI (12649)
+Runs On: MTWTFSS
+Train Schedule
+17:10 | NAGPUR | Thu, 15 Oct
+15:00
+08:10 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Economy (3E)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+BSP NDLS RAJ EX (12441)
+Runs On: MTWTFSS
+Train Schedule
+20:35 | NAGPUR | Thu, 15 Oct
+14:05
+10:40 | NEW DELHI | Fri, 16 Oct
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+NZM DURONTO (12285)
+Runs On: MTWTFSS
+Train Schedule
+20:45 | NAGPUR | Thu, 15 Oct
+13:55
+10:40 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Second Sitting (2S)
+Refresh 
+	
+Sleeper (SL)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+KERALA SF EXP (12625)
+Runs On: MTWTFSS
+Train Schedule
+21:15 | NAGPUR | Thu, 15 Oct
+15:35
+12:50 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Economy (3E)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+CHATTISGARH EXP (18237)
+Runs On: MTWTFSS
+Train Schedule
+22:20 | NAGPUR | Thu, 15 Oct
+21:30
+19:50 | HAZRAT NIZAMUDDIN JN | Fri, 16 Oct
+Sleeper (SL)
+Refresh 
+	
+AC 3 Economy (3E)
+Refresh 
+	
+AC 3 Tier (3A)
+Refresh 
+	
+AC 2 Tier (2A)
+Refresh 
+	
+AC First Class (1A)
+Refresh 
+Please check NTES website or NTES app for actual time before boarding
+Book NowOTHER DATES
+Get Connected with us on social networks
+IRCTC Trains
+General Information
+Important Information
+Agents
+Enquiries
+How To
+IRCTC Official App
+Advertise with usRefund Rules
+Person With Disability Facilities
+E-Wallet
+IRCTC Co-branded Card Benefits
+IRCTC-iPAY Payment Gateway
+IRCTC Zone
+DMRC Ticket Booking at IRCTC
+For Newly Migrated Agents
+Mobile Zone
+Policies
+Ask Disha ChatBot
+About us
+Help & Support
+
+E-Pantry
+
+
+
+Copyright Â© 2026 - www.irctc.co.in. All Rights Reserved
+
+Designed and Hosted by CRIS
+
+Compatible Browsers
+
+DM1MS10

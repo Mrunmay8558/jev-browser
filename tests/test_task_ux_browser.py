@@ -68,3 +68,51 @@ def test_flight_form_preserves_typing_submits_details_and_new_task_works_while_w
         page.set_viewport_size({'width':1440,'height':960})
         page.screenshot(path='/private/tmp/jev-trip-form.png',full_page=True)
         browser.close()
+
+
+def test_completed_train_schedules_are_readable_in_chat_and_on_mobile():
+    from jev_lab.agent.models import Observation, Plan
+    from jev_lab.agent.results import build_result
+    page_text = (Path(__file__).parent / 'fixtures/irctc-train-list.txt').read_text()
+    result = build_result(Plan(status='complete', message='Done', evidence=['17 Results for NAGPUR']),
+                          Observation(url='https://www.irctc.co.in/nget/booking/train-list', title='IRCTC',
+                                      text=page_text, elements=[], document='test'), 'jev')
+    run = {'id':'train-results', 'task':'List trains', 'mode':'jev', 'status':'completed', 'step':11,
+           'maxSteps':35, 'events':[{'kind':'user','message':'List trains'}, {'kind':'complete','message':result['summary']}],
+           'pending':None, 'page':{'url':result['url']}, 'result':result, 'lastDecision':None,
+           'imageRevision':0, 'modelCalls':{'jev':11,'gemini':0}, 'message':result['summary']}
+    def api(route):
+        data = {'jevOnlyAvailable':True,'liveAvailable':False,'jevConfigured':True,'geminiConfigured':False} if route.request.url.endswith('/config') else run
+        route.fulfill(content_type='application/json', body=json.dumps(data))
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel='chrome', headless=True)
+        page = browser.new_page(viewport={'width':1440,'height':960})
+        errors = []
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.route('**/api/agent/**', api)
+        page.goto(os.environ.get('JEV_TEST_URL','http://127.0.0.1:4318'))
+        expect(page.locator('.train-card')).to_have_count(17)
+        expect(page.locator('.train-card').first).to_be_in_viewport()
+        expect(page.locator('.train-card').first).to_contain_text('TVC NZM SF EXP · 12643')
+        expect(page.locator('.train-card').first).to_contain_text('00:25')
+        expect(page.locator('.train-card').first).to_contain_text('18:45')
+        expect(page.locator('.train-card').nth(4)).to_contain_text('Fri, 16 Oct')
+        expect(page.locator('.train-card').nth(4)).to_contain_text('NEW DELHI')
+        expect(page.locator('.result a')).to_have_attribute('href', result['url'])
+        page.screenshot(path='/private/tmp/jev-train-results-desktop.png',full_page=True)
+        page.set_viewport_size({'width':390,'height':844})
+        page.reload()
+        expect(page.locator('.train-card').first).to_be_in_viewport()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert page.locator('#thread').evaluate('el => el.scrollWidth <= el.clientWidth')
+        page.locator('.train-card').last.scroll_into_view_if_needed()
+        expect(page.locator('.train-card').last).to_contain_text('CHATTISGARH EXP · 18237')
+        page.screenshot(path='/private/tmp/jev-train-results-mobile.png',full_page=True)
+        # Website-provided train names must never turn into HTML in the chat.
+        result['trains'][0]['name'] = '<img src=x onerror="window.untrustedRan=true">'
+        page.reload()
+        expect(page.locator('.train-card').first).to_contain_text('<img src=x')
+        assert page.locator('.train-card img').count() == 0
+        assert page.evaluate('window.untrustedRan === undefined')
+        assert not errors, errors
+        browser.close()

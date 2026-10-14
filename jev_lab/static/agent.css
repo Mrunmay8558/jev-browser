@@ -23,3 +23,15 @@ body{margin:0;height:100dvh;overflow:hidden;font-size:13px}button,input,textarea
 #extra-settings{margin:20px 0}#extra-settings summary{font-size:12px;cursor:pointer}
 .value-row{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin:8px 0}.value-row input{min-width:0}.value-row button{padding:6px}
 #new-chat{color:#234f3c;font-size:12px;background:#edf2e6;border:1px solid #d5e0cd}
+
+/* Train schedules in the final chat answer. All page strings render as text. */
+.train-search-heading,.train-result-note{font-size:11px;line-height:1.6;color:#607456;margin:10px 0;white-space:normal}
+.train-results{list-style:none;padding:0;margin:12px 0;white-space:normal}
+.train-card{padding:13px 0;border-top:1px solid #d8e4ce}
+.train-name{display:block;font-size:12px;line-height:1.5;font-weight:650}
+.train-schedule{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:15px;margin-top:9px}
+.train-schedule span{display:block;overflow-wrap:anywhere}
+.train-stop-label{font-size:9px;color:#728168;text-transform:uppercase;letter-spacing:.7px}
+.train-time{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.4}
+.train-date{font-size:11px;color:#586d4c}
+.train-station{font-size:10px;line-height:1.5;margin-top:3px;color:#6c7d60}

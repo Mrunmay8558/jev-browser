@@ -1,6 +1,7 @@
 """One cancellable observe/plan/judge/act loop, with real suspended handovers."""
 
 import asyncio
+import json
 import time
 import uuid
 from contextlib import suppress
@@ -15,6 +16,7 @@ from .judge import JevJudge
 from .models import AgentError, Control, Plan, StartRun, StaleObservation
 from .planner import GeminiPlanner
 from .navigation import navigation_urls
+from .results import build_result
 from .safety import action_boundary, evidence_is_present
 
 TERMINAL = {"completed", "failed", "stopped", "limit_reached"}
@@ -184,12 +186,20 @@ class AgentRun:
                     effective_task += "\nUser-supplied form values: " + str(self.request.inputs)
                 if self.updates:
                     effective_task += "\nUser follow-up instructions (latest takes precedence):\n" + "\n".join(self.updates)
+                completed_actions = [event['message'] for event in self.events if event['kind'] == 'action'][-6:]
+                if completed_actions:
+                    effective_task += "\nRecent executed browser actions (historical data; check current page before repeating):\n" + json.dumps(completed_actions)
                 if self.request.mode != "demo":
                     self.model_calls["jev"] += 1
                 verdict = await self.judge.evaluate(effective_task,observation,plan)
                 self.last_decision={"plan":plan.model_dump(),"jevPayload":verdict.payload,"jevResponse":verdict.response}
                 self.event("judge",f"{'Scripted judge' if self.request.mode=='demo' else 'Jev'} chose {verdict.choice} · confidence {verdict.confidence:.2f}")
                 if self._pause_requested or input_revision != self._input_revision:
+                    continue
+                # A popup can arrive while the model evaluates the previous
+                # page. A stale verdict must not cause a needless user handover.
+                if (await self.browser.observe()).revision != observation.revision:
+                    self.event("retry", "The page changed while Jev was deciding. Reading it again automatically.")
                     continue
                 if self.request.mode == "jev" and verdict.goal_met >= 0.9 and verdict.evidence:
                     plan = Plan(status="complete", message="Jev judged the task complete based on the page evidence below.", evidence=[verdict.evidence])
@@ -199,8 +209,8 @@ class AgentRun:
                         continue
                     if verdict.goal_met>=0.9 and evidence_is_present(plan,fresh):
                         self.status = "completed"
-                        self.result={"summary":plan.message,"evidence":plan.evidence,"url":fresh.url,"mode":self.request.mode}
-                        self.event("complete",plan.message)
+                        self.result=build_result(plan,fresh,self.request.mode)
+                        self.event("complete",self.result["summary"])
                         await self.browser.hide_cursor()
                         await self.capture()
                         return

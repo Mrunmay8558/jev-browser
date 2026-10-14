@@ -29,7 +29,9 @@ Choose **Jev only**, click **Search flights on MakeMyTrip**, and send. The app o
 
 **New task** is available during running, paused, waiting, and finished tasks. It cancels the current run, clears its form values and conversation, and lets you choose either model mode for your next task. It does not undo website actions already performed. The real browser stays open for inspection.
 
-If the website shows a login popup or a control the agent cannot use, choose **Pause / take over**, interact directly in the right pane, and **Continue after my changes**. You can also type guidance in chat to resume. Login, verification, and payment details require manual handover. This prototype does not bypass CAPTCHA or promise successful booking on every travel site.
+If the website shows a login popup or a control the agent cannot use, choose **Pause / take over**, interact directly in the right pane, and choose **Resume agent** when finished. This reads the updated page and returns control to the agent; it does not approve a purchase. Sending guidance in chat also resumes planning. Ordinary supported actions continue automatically without a resume click. Login, verification, and payment details require manual handover. This prototype does not bypass CAPTCHA or promise successful booking on every travel site.
+
+Completed IRCTC searches also show every readable train schedule in chat: the train name and number, departure and arrival times, dates, and stations. Python extracts these details from the same observed results page after completion is verified; no extra Gemini or Jev call is needed. Overnight arrivals and nearby destination stations retain their actual page labels. If a card is incomplete or the page text is truncated, the answer says how many schedules were readable instead of inventing missing times. Other websites retain their existing evidence-based final answer.
 
 The named website in your message overrides an older starting URL. **New task** clears the previous starting URL and form values. Named sites currently supported are MakeMyTrip, IRCTC, Wikipedia, and Python documentation; supply a full `https://` URL for other websites.
 

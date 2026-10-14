@@ -5,7 +5,7 @@ import hashlib
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from playwright.async_api import async_playwright
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError, async_playwright
 
 from ..config import Settings
 from .models import Action, AgentError, Observation, StaleObservation
@@ -102,6 +102,11 @@ class BrowserDriver:
             if await locator.count() != 1:
                 raise StaleObservation("The selected control changed.")
             await locator.scroll_into_view_if_needed()
+            if action.kind == 'fill':
+                # Leave room below the field for autocomplete and date pickers.
+                # A field at the very bottom edge can be visible while all of
+                # its suggestions are outside the browser pane.
+                await locator.evaluate("el=>el.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'})")
             await locator.click(trial=True)
             box = await locator.bounding_box()
             if not box:
@@ -130,6 +135,22 @@ class BrowserDriver:
                 await locator.fill(action.value)
                 if await locator.input_value() != action.value:
                     raise AgentError("The field did not retain the requested value.")
+            # Autocomplete results often arrive after an AJAX debounce. Reading
+            # immediately produces an empty menu and a needless low-confidence
+            # handover. Wait only for this field's related, matching suggestions.
+            controls = await locator.get_attribute('aria-controls')
+            if controls and target.role in {'searchbox', 'combobox', 'textbox'}:
+                try:
+                    await self.page.wait_for_function('''([ids, query]) => {
+                        const clean = text => (text || '').toLocaleLowerCase().replace(/\\s+/g, ' ').trim();
+                        return ids.split(/\\s+/).some(id => {
+                            const list = document.getElementById(id);
+                            return list && Array.from(list.querySelectorAll('[role="option"]')).some(option =>
+                                option.getBoundingClientRect().height > 0 && clean(option.innerText).includes(clean(query)));
+                        });
+                    }''', arg=[controls, action.value], timeout=4000)
+                except PlaywrightTimeoutError:
+                    pass  # No matching result: let the next observation explain it.
         elif action.kind == "select":
             try:
                 await locator.select_option(value=action.value, timeout=2000)
