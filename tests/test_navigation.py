@@ -38,15 +38,17 @@ def test_followup_can_propose_navigation_only_to_a_user_requested_site():
 def test_jev_only_asks_for_missing_flight_details_instead_of_guessing():
     plan=asyncio.run(CandidatePlanner({}).propose('Open MakeMyTrip and search for Dubai flights',page(),[],[]))
     assert plan.status=='handoff'
-    assert 'From' in plan.message and 'Departure date' in plan.message
-    assert ', To,' not in plan.message
+    assert plan.flight_details['from_city']==''
+    assert plan.flight_details['departure_date']==''
+    assert plan.flight_details['to_city']=='Dubai'
+    assert 'Save and continue' in plan.message
     assert not plan.actions
 
 
 def test_supplied_details_allow_dynamic_actions_on_real_site():
     observation=page()
     observation.elements=[Element(ref='e1',tag='button',role='button',label='Search')]
-    plan=asyncio.run(CandidatePlanner({}).propose('Open MakeMyTrip and search for Dubai flights',observation,[],['From: Mumbai\nDeparture date: 2026-10-24']))
+    plan=asyncio.run(CandidatePlanner({}).propose('Open MakeMyTrip and search for Dubai flights',observation,[],['From: Mumbai\nDeparture date: 2026-10-24\nTrip type: One way']))
     assert plan.status=='act'
     assert any(action.target=='e1' for action in plan.actions)
 

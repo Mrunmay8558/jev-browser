@@ -18,17 +18,29 @@
         <div id="welcome" class="welcome">
           <div class="mark">j.</div><p class="eyebrow">YOUR GOAL. ONE STEP AT A TIME.</p>
           <h1>What should we do<br>in the browser?</h1>
-          <p>Give the agent a task, watch its actions, and guide it along the way.</p>
+          <p>Tell me what you want to do. I’ll open the website and ask for any details I need.</p>
           <button id="preset" class="example"><span class="example-icon">↗</span><span>Search flights on MakeMyTrip<small>Open the real website → enter details → compare</small></span><span>＋</span></button>
-          <p class="welcome-note">Name a supported website or include its URL. The agent opens the actual site and asks for missing details.</p>
+          <p class="welcome-note">Fill in a form when I ask for details. You can also type guidance in chat, or choose New task at any time.</p>
         </div>
         <div id="messages"></div>
-      </div>
       <section id="handoff" class="handoff" hidden aria-label="Agent needs input">
         <strong id="handoff-title"></strong><p id="handoff-message"></p>
+        <form id="trip-form" hidden>
+          <div class="trip-grid">
+            <label>Flying from<input id="trip-from" name="from_city" placeholder="Departure city" maxlength="100" required></label>
+            <label>Flying to<input id="trip-to" name="to_city" placeholder="Destination city" maxlength="100" required></label>
+            <label>Departure date<input id="trip-departure" name="departure_date" type="date" required></label>
+            <label>Trip type<select id="trip-type" name="trip_type" aria-label="Trip type" required><option value="">Choose one</option><option>One way</option><option>Return</option></select></label>
+            <label id="return-field" hidden>Return date<input id="trip-return" name="return_date" type="date"></label>
+          </div>
+          <p id="trip-error" class="field-error" role="alert" hidden></p>
+          <button id="save-details" class="primary" type="submit">Save and continue</button>
+        </form>
         <div class="controls"><button id="approve" class="primary" hidden>Approve this action</button><button id="resume">Resume</button></div>
-        <small>Send changes in the chat below. Sending a message does not approve an action.</small>
+        <small id="handoff-help">You can start a New task at any time.</small>
       </section>
+      </div>
+      <div id="notice" class="notice" role="status" hidden></div>
       <div id="error" class="error" role="alert" hidden></div>
       <form id="composer" class="composer">
         <div class="compose-box">
@@ -61,14 +73,16 @@
   </main>
   <dialog id="settings" aria-labelledby="settings-title">
     <div class="dialog-title"><h2 id="settings-title">Task settings</h2><button id="close-settings" class="ghost" aria-label="Close settings">✕</button></div>
-    <p class="hint">These settings apply when you start a task. Change the mode between runs to compare the same goal.</p>
+    <p class="hint">Usually you can just type a task in chat. These optional settings apply to your next task.</p>
     <label for="start-url">Starting website</label><input id="start-url" type="url" placeholder="https://the-website-you-want.com">
     <p class="hint">A website named in your message takes precedence over this address. Supported names include MakeMyTrip, IRCTC, Wikipedia, and Python documentation.</p>
-    <label for="form-values">Known form values <span>especially useful for Jev only</span></label>
-    <textarea id="form-values" rows="5" placeholder="From: your departure city&#10;To: Dubai&#10;Departure date: YYYY-MM-DD"></textarea>
-    <p class="hint">One Field label: value per line. Jev-only chooses from these values; it cannot invent new text to type. You can also send labeled values in chat.</p>
+    <details id="extra-settings"><summary>Text to enter on other websites (optional)</summary>
+      <p class="hint">Match a field on the website to the text you want entered. For example: Search → Python tutorial. Flight details have their own form in chat.</p>
+      <div id="known-values"></div><button id="add-value" type="button">Add another field</button>
+    </details>
     <div class="two-col"><div><label for="max-steps">Step limit</label><input id="max-steps" type="number" value="35" min="1" max="80"></div><div><label for="threshold">Jev confidence threshold</label><input id="threshold" type="number" value="0.65" min="0" max="1" step="0.05"></div></div>
     <p id="key-note" class="hint"></p><button id="save-settings" class="primary">Done</button>
   </dialog>
+  <template id="value-row-template"><div class="value-row"><input data-name placeholder="Field on website" maxlength="80"><input data-value placeholder="Text to enter" maxlength="300"><button type="button" aria-label="Remove field">×</button></div></template>
 </body>
 </html>

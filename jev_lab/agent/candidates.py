@@ -6,8 +6,9 @@ Jev selects among these candidates; this module makes no network requests.
 
 import re
 from urllib.parse import urlsplit
+from pydantic import ValidationError
 
-from .models import Action, AgentError, Observation, Plan
+from .models import Action, AgentError, FlightDetails, Observation, Plan
 from .navigation import flight_values, requested_website, same_site
 
 ALIASES = (
@@ -16,6 +17,8 @@ ALIASES = (
     {"date", "travel date", "departure date", "journey date"},
     {"class", "travel class", "seat class"},
     {"name", "passenger", "passenger name", "full name"},
+    {"trip type", "journey type"},
+    {"return date", "return"},
 )
 
 
@@ -57,10 +60,16 @@ class CandidatePlanner:
         values = {canonical_label(key): value for key, value in {**self.inputs, **flight_values(task), **explicit_inputs(task)}.items()}
         for update in updates:
             values.update({canonical_label(key): value for key, value in {**flight_values(update), **explicit_inputs(update)}.items()})
-        if 'makemytrip.com' in urlsplit(observation.url).netloc and re.search(r'\bflights?\b', task, re.I):
-            missing = [name for name in ['From', 'To', 'Departure date'] if canonical_label(name) not in values]
-            if missing:
-                return Plan(status="handoff", message="The real MakeMyTrip website is open. Please provide these flight details in chat, one 'Label: value' per line: " + ', '.join(missing) + '. Use YYYY-MM-DD for the date. State one-way or return; add a return date if needed.')
+        if values.get(canonical_label('Trip type')) == 'One way':
+            values.pop(canonical_label('Return date'), None)
+        if 'makemytrip.com' in urlsplit(observation.url).netloc and re.search(r'\bflights?\b', ' '.join([task, *updates]), re.I):
+            fields = {key: values.get(canonical_label(label), '') for key, label in {
+                'from_city':'From', 'to_city':'To', 'departure_date':'Departure date',
+                'trip_type':'Trip type', 'return_date':'Return date'}.items()}
+            try:
+                FlightDetails.model_validate({**fields, 'return_date': fields['return_date'] or None})
+            except ValidationError:
+                return Plan(status="handoff", message="Add your trip details in the form below, then choose Save and continue.", flight_details=fields)
         if len(values) > 16:
             raise AgentError("Use at most 16 labeled form values in Jev-only mode.")
         candidates: list[Action] = []

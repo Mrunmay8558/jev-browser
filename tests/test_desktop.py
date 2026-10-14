@@ -52,11 +52,13 @@ def test_python_controls_only_the_native_website_and_disconnect_preserves_it():
                 await ui.get_by_role('button', name='Task settings', exact=True).click()
                 await expect(ui.locator('#settings')).to_be_visible()
                 await ui.locator('#start-url').fill('https://old.example/')
-                await ui.locator('#form-values').fill('From: Old city')
+                await ui.locator('#extra-settings summary').click()
+                await ui.locator('[data-name]').fill('From')
+                await ui.locator('[data-value]').fill('Old city')
                 await ui.locator('#save-settings').click()
                 await ui.locator('#new-chat').click()
-                assert await ui.locator('#start-url').input_value() == ''
-                assert await ui.locator('#form-values').input_value() == ''
+                await expect(ui.locator('#start-url')).to_have_value('')
+                await expect(ui.locator('[data-value]')).to_have_value('')
                 website_url = page.url
                 await driver.close()
                 # Disconnecting Python must leave Electron and both views alive.

@@ -98,3 +98,9 @@ The original LCG project was not modified, and no keys were copied from its sett
 - [Gemini structured output](https://ai.google.dev/gemini-api/docs/structured-output)
 - [Gemini Interactions API](https://ai.google.dev/gemini-api/docs/interactions-overview)
 - [TypeSafe API](https://docs.typesafe.ai/api)
+
+## Guided details and task switching
+
+A handoff can include `pending.flightDetails` for the chat's flight form. Saving sends a typed `FlightDetails` object through the `details` control. Python validates cities, travel dates, and return-trip requirements, adds the supplied values to subsequent planning, and resumes without approving an action. Frontend polling preserves partially typed form values.
+
+`POST /api/agent/reset` cancels and awaits the current run, disconnects its browser driver, and clears it under the same lock used for starting runs. The New task button calls this route from any run status. A UI generation counter discards older status responses so an old run cannot reappear after reset. Electron's actual website view stays open.

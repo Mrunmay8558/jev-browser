@@ -4,7 +4,14 @@ const modeNames = {demo: 'Local demo', jev: 'Jev only', live: 'Gemini + Jev'};
 let config, run = null, mode = 'jev', working = false, detached = false;
 const desktop = window.jevDesktop;
 let desktopState = {url: ''};
-let lastImage = -1, lastEvents = -1, displayedRun = '', pollTimer;
+let lastImage = -1, lastEvents = -1, displayedRun = '', pollTimer, viewEpoch = 0, tripDraftKey = '';
+function busy(value) {
+  working = value;
+  $('new-chat').disabled = value;
+  $('send').disabled = value || !config;
+  $('save-details').disabled = value;
+}
+function notice(message = '') { $('notice').textContent = message; $('notice').hidden = !message; }
 
 function error(message = '') {
   $('error').textContent = message;
@@ -92,16 +99,18 @@ function render(data) {
   $('welcome').hidden = true;
   const active = isActive();
   for (const button of document.querySelectorAll('[data-mode]')) button.disabled = active;
-  for (const id of ['new-chat', 'max-steps', 'threshold', 'form-values']) $(id).disabled = active;
+  for (const id of ['max-steps', 'threshold', 'add-value']) $(id).disabled = active;
+  $('known-values').querySelectorAll('input,button').forEach(element => { element.disabled = active; });
+  $('new-chat').disabled = working;
   $('start-url').disabled = active || mode === 'demo';
   $('send').disabled = working || !config;
   $('task').maxLength = active ? 2000 : 4000;
   $('task').placeholder = active ? 'Add details or change the next steps…' : 'Ask the browser to do something…';
-  $('composer-hint').textContent = active ? 'Send guidance' : 'Enter to send';
+  $('composer-hint').textContent = active ? 'Updates this task · Enter to send' : 'Enter to send';
   $('pause').disabled = !active || !!run.pending;
   $('stop').disabled = !active;
   $('focus').disabled = !run.page;
-  $('status').textContent = run.status.replaceAll('_', ' ');
+  $('status').textContent = ({handoff:'Needs your details',review:'Needs guidance',approval:'Needs approval',paused:'Paused'})[run.status] || run.status.replaceAll('_', ' ');
   $('status').className = 'status ' + run.status;
   $('step').textContent = `Step ${run.step} / ${run.maxSteps} · ${modeNames[run.mode]}`;
   $('message').textContent = run.message;
@@ -117,11 +126,22 @@ function render(data) {
   }
   $('handoff').hidden = !run.pending;
   if (run.pending) {
-    $('handoff-title').textContent = run.status === 'approval' ? 'Review this action' : 'Your input is needed';
+    const trip = run.pending.flightDetails;
+    $('handoff-title').textContent = trip ? 'Your flight details' : run.status === 'approval' ? 'Review this action' : run.status === 'paused' ? 'You have control' : 'Let’s continue';
     $('handoff-message').textContent = run.pending.message;
+    $('trip-form').hidden = !trip;
     $('approve').hidden = run.status !== 'approval';
-    $('resume').textContent = run.status === 'approval' ? 'Skip & replan' : 'Resume';
-  }
+    $('resume').hidden = !!trip;
+    $('resume').textContent = run.status === 'approval' ? 'Skip & replan' : 'Continue after my changes';
+    $('handoff-help').textContent = trip ? 'No special format needed. Save these details to continue, or choose New task to start over.' : run.status === 'approval' ? 'Only Approve authorizes this action. New task stops this run.' : 'You can use the browser yourself, send guidance in chat, or start a New task.';
+    const draftKey = trip ? run.id + ':' + JSON.stringify(trip) : '';
+    if (trip && tripDraftKey !== draftKey) {
+      tripDraftKey = draftKey;
+      for (const [id, key] of Object.entries({'trip-from':'from_city','trip-to':'to_city','trip-departure':'departure_date','trip-type':'trip_type','trip-return':'return_date'})) $(id).value = trip[key] || '';
+      $('trip-error').hidden = true;
+      updateReturnField();
+    }
+  } else { tripDraftKey = ''; $('trip-form').hidden = true; }
   renderMessages(followConversation);
   $('inspector').textContent = run.lastDecision ? JSON.stringify({
     mode: modeNames[run.mode],
@@ -132,27 +152,66 @@ function render(data) {
 async function poll() {
   clearTimeout(pollTimer);
   if (!detached) {
+    const epoch = viewEpoch;
     try {
       const data = await api(run ? `/api/agent/runs/${run.id}` : '/api/agent/current');
-      if (data) render(data);
-    } catch (e) { error(e.message); }
+      if (data && epoch === viewEpoch) render(data);
+    } catch (e) { if (epoch === viewEpoch) error(e.message); }
   }
   pollTimer = setTimeout(poll, isActive() && !run.pending ? 250 : 1500);
 }
+function addValueRow(name = '', value = '') {
+  const row = $('value-row-template').content.firstElementChild.cloneNode(true);
+  const index = $('known-values').children.length + 1;
+  row.querySelector('[data-name]').value = name;
+  row.querySelector('[data-name]').setAttribute('aria-label', `Field on website ${index}`);
+  row.querySelector('[data-value]').value = value;
+  row.querySelector('[data-value]').setAttribute('aria-label', `Text to enter ${index}`);
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  $('known-values').append(row);
+}
+$('add-value').addEventListener('click', () => { if ($('known-values').children.length < 16) addValueRow(); });
+addValueRow();
+function clearValues() { $('known-values').replaceChildren(); addValueRow(); }
 function formValues() {
   const values = {};
-  for (const line of $('form-values').value.split('\n').filter(line => line.trim())) {
-    const match = line.match(/^\s*([^:]{1,80}):\s*(.+?)\s*$/);
-    if (!match) throw Error('Use one Field label: value per line in Task settings.');
-    values[match[1].trim()] = match[2];
+  for (const row of $('known-values').children) {
+    const name = row.querySelector('[data-name]').value.trim();
+    const value = row.querySelector('[data-value]').value.trim();
+    if (!name && !value) continue;
+    if (!name || !value) throw Error('In Task settings, give each extra field both a name and the text to enter, or remove the empty row.');
+    values[name] = value;
   }
   return values;
 }
+function updateReturnField() {
+  const returning = $('trip-type').value === 'Return';
+  $('return-field').hidden = !returning;
+  $('trip-return').required = returning;
+  $('trip-return').min = $('trip-departure').value;
+}
+$('trip-type').addEventListener('change', updateReturnField);
+$('trip-departure').addEventListener('change', updateReturnField);
+$('trip-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (working || !run?.pending?.flightDetails || !$('trip-form').reportValidity()) return;
+  busy(true); error(); $('trip-error').hidden = true;
+  try {
+    render(await api(`/api/agent/runs/${run.id}/control`, {command:'details', details:{
+      from_city:$('trip-from').value.trim(), to_city:$('trip-to').value.trim(),
+      departure_date:$('trip-departure').value, trip_type:$('trip-type').value,
+      return_date:$('trip-type').value === 'Return' ? $('trip-return').value : null
+    }}));
+    notice('Trip details saved. Continuing this task…');
+    void poll();
+  } catch (e) { $('trip-error').textContent = e.message; $('trip-error').hidden = false; }
+  finally { busy(false); }
+});
 async function sendMessage(event) {
   event?.preventDefault();
   const task = $('task').value.trim();
   if (!task || working || !config) return;
-  working = true; $('send').disabled = true; error();
+  busy(true); error(); notice();
   try {
     if (isActive()) {
       render(await api(`/api/agent/runs/${run.id}/control`, {command: 'message', message: task}));
@@ -162,7 +221,7 @@ async function sendMessage(event) {
       let startUrl = $('start-url').value.trim();
       if (!startUrl && mode !== 'demo') startUrl = task.match(/https?:\/\/[^\s<>]+/)?.[0] || '';
       // The server resolves explicit website names and task URLs before opening a browser.
-      if (startUrl.includes('/demo/')) {startUrl = ''; $('form-values').value = '';} 
+      if (startUrl.includes('/demo/')) {startUrl = ''; clearValues();} 
       const data = await api('/api/agent/runs', {
         task, start_url: mode === 'demo' ? '' : startUrl, mode,
         inputs: mode === 'demo' ? {} : formValues(),
@@ -172,7 +231,7 @@ async function sendMessage(event) {
     }
     $('task').value = '';
   } catch (e) { error(e.message); }
-  finally { working = false; $('send').disabled = false; }
+  finally { busy(false); }
 }
 $('composer').addEventListener('submit', sendMessage);
 $('task').addEventListener('keydown', event => {
@@ -184,20 +243,34 @@ for (const button of document.querySelectorAll('[data-mode]')) button.addEventLi
 $('preset').addEventListener('click', () => {
   $('task').value = 'Open MakeMyTrip and search for Dubai flights. Show me the options before booking.';
   $('start-url').value = 'https://www.makemytrip.com/flights/';
-  $('form-values').value = 'To: Dubai';
+  clearValues();
   $('task').focus();
 });
-$('new-chat').addEventListener('click', () => {
-  if (isActive()) return;
-  detached = true; run = null; displayedRun = ''; lastEvents = lastImage = -1;
-  $('messages').replaceChildren(); $('welcome').hidden = false; $('handoff').hidden = true;
-  $('start-url').value = ''; $('form-values').value = '';
-  $('task').value = ''; $('task').placeholder = 'Ask the browser to do something…';
-  $('status').textContent = 'Ready'; $('step').textContent = 'Ready when you are';
-  $('message').textContent = 'Choose a mode and send a task in the chat.';
-  $('url').textContent = 'Your browser will appear here'; $('metrics').textContent = 'No model calls yet';
-  $('inspector').textContent = 'No decision yet.'; $('focus').disabled = true;
-  error(); emptyBrowser(); setMode(mode);
+$('new-chat').addEventListener('click', async () => {
+  if (working) return;
+  const wasActive = isActive();
+  busy(true); error(); notice();
+  detached = true; viewEpoch++; clearTimeout(pollTimer);
+  try {
+    await api('/api/agent/reset', {});
+    run = null; displayedRun = ''; lastEvents = lastImage = -1; tripDraftKey = '';
+    $('messages').replaceChildren(); $('welcome').hidden = false; $('handoff').hidden = true;
+    $('trip-form').reset(); $('trip-form').hidden = true;
+    $('start-url').value = ''; clearValues();
+    $('task').value = ''; $('task').maxLength = 4000; $('task').placeholder = 'Ask the browser to do something…';
+    $('status').textContent = 'Ready'; $('status').className = 'status'; $('step').textContent = 'Ready when you are';
+    $('message').textContent = 'Choose a mode and send a task in the chat.';
+    $('metrics').textContent = 'No model calls yet'; $('inspector').textContent = 'No decision yet.';
+    for (const id of ['pause','stop','focus']) $(id).disabled = true;
+    for (const id of ['max-steps','threshold','add-value']) $(id).disabled = false;
+    document.querySelectorAll('[data-mode]').forEach(button => { button.disabled = false; });
+    $('composer-hint').textContent = 'Enter to send';
+    if (mode === 'demo') mode = 'jev';
+    emptyBrowser(); setMode(mode); updateReturnField();
+    notice(wasActive ? 'Previous task stopped. What would you like to do next?' : 'Ready for a new task.');
+    $('thread').scrollTop = 0; $('task').focus();
+  } catch (e) { error('Could not stop the current task. ' + e.message); }
+  finally { detached = false; busy(false); void poll(); }
 });
 $('settings-toggle').addEventListener('click', () => showSettings(true));
 $('close-settings').addEventListener('click', () => showSettings(false));
@@ -206,10 +279,10 @@ $('settings').addEventListener('close', () => {$('settings-toggle').setAttribute
 for (const command of ['pause', 'stop', 'resume', 'approve', 'focus']) {
   $(command).addEventListener('click', async () => {
     if (!run || working) return;
-    working = true; error();
+    busy(true); error(); notice();
     try { render(await api(`/api/agent/runs/${run.id}/control`, {command})); }
     catch (e) { error(e.message); }
-    finally { working = false; $('send').disabled = false; }
+    finally { busy(false); }
   });
 }
 $('screen').addEventListener('error', () => emptyBrowser(['handoff', 'paused'].includes(run?.status)));

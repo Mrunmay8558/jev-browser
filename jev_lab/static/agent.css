@@ -11,3 +11,15 @@ body{margin:0;height:100dvh;overflow:hidden;font-size:13px}button,input,textarea
 .desktop #browser-address{flex:1;min-width:0;border:1px solid #d3ddcd;background:#fffefa;border-radius:6px;padding:7px 10px;font-size:11px;color:#4d6545}
 .desktop .browser-bar{padding:8px 12px;gap:8px}
 .desktop .workspace{grid-template-columns:minmax(360px,33%) minmax(0,1fr)}
+
+/* Guidance stays in the scrollable conversation, with space for the composer. */
+.thread .handoff{margin:10px 0 4px;max-height:none;overflow:visible}
+.trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin:12px 0}
+.trip-grid label{font-size:11px;font-weight:600;min-width:0}
+.trip-grid input,.trip-grid select{display:block;width:100%;min-width:0;margin-top:6px;padding:9px 8px;border:1px solid #d9d3b8;border-radius:6px;background:#fffefa;color:#263d34;font:inherit;min-height:37px}
+.trip-grid input:focus,.trip-grid select:focus{outline:2px solid #559273;outline-offset:1px}
+#save-details{width:100%;margin-top:2px}.field-error{color:#9b4a37!important}
+.notice{font-size:11px;color:#3b6c4f;padding:10px 22px;background:#edf4e9;border-top:1px solid #dfe8d8}
+#extra-settings{margin:20px 0}#extra-settings summary{font-size:12px;cursor:pointer}
+.value-row{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin:8px 0}.value-row input{min-width:0}.value-row button{padding:6px}
+#new-chat{color:#234f3c;font-size:12px;background:#edf2e6;border:1px solid #d5e0cd}

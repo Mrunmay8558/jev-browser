@@ -23,6 +23,12 @@ async def current(request: Request):
     return run.snapshot() if run else None
 
 
+@router.post("/reset")
+async def reset(request: Request):
+    await request.app.state.runs.reset()
+    return {"status": "ready"}
+
+
 @router.post("/runs",status_code=202)
 async def start(body: StartRun, request: Request):
     run=await request.app.state.runs.start(body)

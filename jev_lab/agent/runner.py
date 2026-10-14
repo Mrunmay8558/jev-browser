@@ -62,11 +62,13 @@ class AgentRun:
             self.image = await self.browser.screenshot()
             self.image_revision += 1
 
-    async def park(self, kind: str, message: str, action=None) -> bool:
+    async def park(self, kind: str, message: str, action=None, *, flight_details=None) -> bool:
         self._resume.clear()
         self._approved = False
         self.status = kind
         self.pending = {"kind":kind,"message":message,"action":action.model_dump() if action else None}
+        if flight_details is not None:
+            self.pending['flightDetails'] = flight_details
         if kind in {"handoff", "paused"}:
             self.image = None
             self.image_revision += 1
@@ -94,6 +96,17 @@ class AgentRun:
             return
         if self.status in TERMINAL:
             raise AgentError("This run has finished. Start a new task.")
+        if command.command == "details":
+            if not self.pending or 'flightDetails' not in self.pending or command.details is None:
+                raise AgentError("There is no flight form waiting for details.")
+            values = command.details.as_inputs()
+            self.updates.append('\n'.join(f'{key}: {value}' for key, value in values.items()))
+            self._input_revision += 1
+            self.event('user', f"{command.details.from_city} → {command.details.to_city} · {command.details.departure_date} · {command.details.trip_type}" + (f" · Return {command.details.return_date}" if command.details.return_date else ''))
+            self._approved = False
+            self._pause_requested = False
+            self._resume.set()
+            return
         if command.command == "message":
             if not command.message.strip():
                 raise AgentError("Enter a message to send.")
@@ -161,7 +174,7 @@ class AgentRun:
                 if self._pause_requested:
                     continue
                 if plan.status == "handoff":
-                    await self.park("handoff",plan.message)
+                    await self.park("handoff",plan.message,flight_details=plan.flight_details)
                     continue
                 # Validate every candidate before sending it to the evaluator.
                 allowed_urls = navigation_urls(self.request.task, self.updates, self.request.start_url)
@@ -277,6 +290,14 @@ class RunManager:
         if not self.current or self.current.id!=run_id:
             raise AgentError("Run not found. Runs are kept in memory for this server session.")
         return self.current
+
+    async def reset(self) -> None:
+        """Cancel first, then disconnect and clear the task under the start lock."""
+        async with self._lock:
+            if self.current:
+                await self.current.control(Control(command="stop"))
+                await self.current.browser.close()
+                self.current = None
 
     async def close(self) -> None:
         if self.current:

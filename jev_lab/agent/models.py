@@ -1,5 +1,6 @@
 """Explicit, bounded contracts. A model never supplies executable browser code."""
 
+from datetime import date
 from typing import Literal, Self
 from urllib.parse import urlsplit
 
@@ -40,9 +41,45 @@ class StartRun(Contract):
         return self
 
 
+class FlightDetails(Contract):
+    from_city: str = Field(min_length=1, max_length=100)
+    to_city: str = Field(min_length=1, max_length=100)
+    departure_date: date
+    trip_type: Literal["One way", "Return"]
+    return_date: date | None = None
+
+    @field_validator("from_city", "to_city", mode="before")
+    @classmethod
+    def clean_city(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if '\n' in value or '\r' in value:
+                raise ValueError('Enter one city per field.')
+        return value
+
+    @model_validator(mode="after")
+    def valid_return(self) -> Self:
+        if self.trip_type == "Return":
+            if not self.return_date:
+                raise ValueError('Choose a return date for a return trip.')
+            if self.return_date < self.departure_date:
+                raise ValueError('The return date must be on or after departure.')
+        else:
+            self.return_date = None
+        return self
+
+    def as_inputs(self) -> dict[str, str]:
+        values = {'From': self.from_city, 'To': self.to_city,
+                  'Departure date': self.departure_date.isoformat(), 'Trip type': self.trip_type}
+        if self.return_date:
+            values['Return date'] = self.return_date.isoformat()
+        return values
+
+
 class Control(Contract):
-    command: Literal["pause", "resume", "approve", "stop", "message", "focus"]
+    command: Literal["pause", "resume", "approve", "stop", "message", "focus", "details"]
     message: str = Field(default="", max_length=2000)
+    details: FlightDetails | None = None
 
 
 class Element(Contract):
@@ -82,6 +119,7 @@ class Plan(Contract):
     message: str = Field(max_length=1500)
     actions: list[Action] = Field(default_factory=list, max_length=96)
     evidence: list[str] = Field(default_factory=list, max_length=5)
+    flight_details: dict[str, str] | None = Field(default=None, max_length=6)
 
     @model_validator(mode="after")
     def actions_match_status(self) -> Self:

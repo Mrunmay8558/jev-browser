@@ -51,10 +51,14 @@ def flight_values(text: str) -> dict[str, str]:
         if match:
             values[label] = match[1].strip()
     if 'To' not in values:
-        match = re.search(r'\b(?:for|find|search)\s+([A-Za-z]+(?: [A-Za-z]+)?)\s+flights?\b', text, re.I)
+        match = re.search(r'\b(?:search(?:\s+for)?|find|for)\s+(?!for\b)([A-Za-z]+(?: [A-Za-z]+)?)\s+flights?\b', text, re.I)
         if match:
             values['To'] = match[1].strip()
     dates = re.findall(r'\b\d{4}-\d{2}-\d{2}\b', text)
     if len(dates) == 1:
         values['Departure date'] = dates[0]
+    if re.search(r'\bone[ -]way\b', text, re.I):
+        values['Trip type'] = 'One way'
+    elif re.search(r'\breturn\b|\bround[ -]trip\b', text, re.I):
+        values['Trip type'] = 'Return'
     return values

@@ -25,16 +25,11 @@ Add `TYPESAFE_API_KEY` to `.env` before running Jev tasks. Add `GEMINI_API_KEY` 
 
 ## Try the real MakeMyTrip example
 
-Choose **Jev only**, click **Search flights on MakeMyTrip**, and send. The app opens `https://www.makemytrip.com/flights/`. It asks for missing travel details instead of using the website's default cities and date. Supply your actual values using labeled lines:
+Choose **Jev only**, click **Search flights on MakeMyTrip**, and send. The app opens `https://www.makemytrip.com/flights/`. If details are missing, a **Your flight details** form appears in the conversation. Fill in **Flying from**, **Flying to**, **Departure date**, and **Trip type**. A return trip also asks for a return date. Then click **Save and continue**. No `Label: value` syntax is needed.
 
-```text
-From: YOUR DEPARTURE CITY
-To: Dubai
-Departure date: YYYY-MM-DD
-Trip type: One way
-```
+**New task** is available during running, paused, waiting, and finished tasks. It cancels the current run, clears its form values and conversation, and lets you choose either model mode for your next task. It does not undo website actions already performed. The real browser stays open for inspection.
 
-Replace the placeholders before sending. If the website shows a login popup or a control the agent cannot use, choose **Pause / take over**, interact directly in the right pane, and **Resume**. Login, verification, and payment details require manual handover. This prototype does not bypass CAPTCHA or promise successful booking on every travel site.
+If the website shows a login popup or a control the agent cannot use, choose **Pause / take over**, interact directly in the right pane, and **Continue after my changes**. You can also type guidance in chat to resume. Login, verification, and payment details require manual handover. This prototype does not bypass CAPTCHA or promise successful booking on every travel site.
 
 The named website in your message overrides an older starting URL. **New task** clears the previous starting URL and form values. Named sites currently supported are MakeMyTrip, IRCTC, Wikipedia, and Python documentation; supply a full `https://` URL for other websites.
 
@@ -47,7 +42,7 @@ The named website in your message overrides an older starting URL. **New task** 
 
 There is no simulated fallback in either model mode. The footer shows actual request counts, and **How this decision was made** exposes the candidate list, Jev payload, and response. Change modes between runs to compare the same task and inputs.
 
-In Jev-only mode, Python recognizes a few explicit travel phrases and `Label: value` lines. It does not provide general language planning or generate missing input text. Jev selects actions and completion evidence. On unfamiliar pages, custom widgets, or too many choices, the run can pause for help. Gemini can propose more flexible steps but still uses the same bounded browser actions and validation.
+In Jev-only mode, Python recognizes a few explicit travel phrases and the structured flight form. For another website, Task settings has optional Field on website / Text to enter rows. Existing `Label: value` chat input also remains supported. It does not provide general language planning or generate missing input text. Jev selects actions and completion evidence. On unfamiliar pages, custom widgets, or too many choices, the run can pause for help. Gemini can propose more flexible steps but still uses the same bounded browser actions and validation.
 
 ## How one step works
 
